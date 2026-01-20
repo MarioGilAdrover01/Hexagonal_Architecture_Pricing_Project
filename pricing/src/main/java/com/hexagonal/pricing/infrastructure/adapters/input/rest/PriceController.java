@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hexagonal.pricing.application.ports.input.PriceServicePort;
-import com.hexagonal.pricing.application.ports.input.dto.PriceDto;
+import com.hexagonal.pricing.domain.model.Price;
+import com.hexagonal.pricing.infrastructure.adapters.input.rest.dto.PriceDto;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -29,7 +30,8 @@ public class PriceController {
             @RequestParam @NotNull Long brandId,
             @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime applicationDate) {
 
-        return service.getPriceByProductIdAndBrandIdAndDate(productId, brandId, applicationDate);
+        Price price = service.getPriceByProductIdAndBrandIdAndDate(productId, brandId, applicationDate);
+        return PriceDto.fromDomain(price);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.hexagonal.pricing.application.ports.input.dto;
+package com.hexagonal.pricing.infrastructure.adapters.input.rest.dto;
 
 import java.time.LocalDateTime;
 
