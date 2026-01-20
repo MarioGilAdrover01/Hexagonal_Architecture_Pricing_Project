@@ -24,9 +24,9 @@ public class PricePersistenceAdapter implements PricePersistencePort {
                     applicationDate,
                     applicationDate);
 
-        return Optional.of(
-            price.isPresent() ? PricePersistenceMapper.toDomain(price.get()) : null
-        );
+        return price.isPresent() 
+                ? Optional.of(PricePersistenceMapper.toDomain(price.get())) 
+                : Optional.empty();
     }
 
 }
