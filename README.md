@@ -6,7 +6,7 @@ Backend service for querying product prices of a brand, developed with **Java** 
 
 ## 🛠 Technologies
 
-- **Language:** Java 25
+- **Language:** Java 21
 - **Framework:** Spring Boot 4.0.1
 - **Database:** In-memory H2
 - **Persistence:** Spring Data JPA
