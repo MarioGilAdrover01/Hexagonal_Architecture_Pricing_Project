@@ -1,1 +1,192 @@
-# Hexagonal_Architecture_Pricing_Project
+# Hexagonal Architecture Pricing Project
+
+Backend service for querying product prices of a brand, developed with **Java** and **Spring Boot** following a **hexagonal architecture**.
+
+---
+
+## 🛠 Technologies
+
+- **Language:** Java 25
+- **Framework:** Spring Boot 4.0.1
+- **Database:** In-memory H2
+- **Persistence:** Spring Data JPA
+- **Lombok** for boilerplate reduction
+- **Testing:** JUnit 5 and Mockito
+- **Other patterns and good practices:**
+    - DTOs (Data Transfer Objects)
+    - Hexagonal Architecture
+    - Global Exception Handler (`@ControllerAdvice`)
+    - SOLID principles
+    - Java Records for inmutability
+    - Unit testing and integration tests
+---
+
+## 🏗 Hexagonal Architecture
+
+The project follows a clear hexagonal architecture, separating domain, application, and adapters. Domain is completely independent of external technologies, including Spring.
+```
+application
+├── ports
+│ ├── input
+│ │ └── PriceServicePort
+│ └── output
+│  └── PricePersistencePort
+├── service
+  └── PriceService
+
+domain
+├── exception
+│ └── PriceNotFoundException
+└── model
+  └── Price
+
+infrastructure
+├── input/rest
+│ ├── dto
+│ │ └── PriceDto
+│ ├── ApiExceptionHandler
+│ └── PriceController
+├── output/persistence
+│ ├── PriceEntity
+│ ├── PricePersistenceAdapter
+│ ├── PricePersistenceMapper
+│ └── PriceRepository
+```
+---
+
+## 🗄 Database Configuration
+
+Database is an **In-memory H2** and it is automatically initialized at application startup with:
+
+- `src/main/resources/schema.sql` → defines the `prices` table
+- `src/main/resources/data.sql` → inserts the test data
+- `src/main/resources/application.properties`:
+
+```
+spring.application.name=pricing
+
+spring.h2.console.enabled=true
+
+spring.datasource.url=jdbc:h2:mem:pricingdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=user
+spring.datasource.password=password
+
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=none
+
+spring.sql.init.mode=always
+```
+
+You can access the H2 console at: http://localhost:8080/h2-console
+```
+JDBC URL: jdbc:h2:mem:pricingdb
+Usuario: user
+Password: password
+```
+---
+
+## 🚀 Clone the repository and execute the application
+Clone the repository (Linux)
+```
+git clone https://github.com/MarioGilAdrover01/Hexagonal_Architecture_Pricing_Project.git
+cd pricing
+```
+
+Compile and execute
+```
+./mvnw clean spring-boot:run
+```
+
+The application will start on `http://localhost:8080`
+
+---
+
+## 🧪 Unit and Integration Tests
+
+The tests are divided into:
+
+- **Service unit tests**: `/src/test/java/com/hexagonal/pricing/services`
+Test the business logic in isolation using Mockito
+
+- **REST Controller integration tests**: `/src/test/java/com/hexagonal/pricing/controllers`
+Test endpoints, parameter validation and H2 database integration.
+
+To run the tests:
+```
+./mvnw test
+```
+---
+
+## 🔗 API Testing
+
+Endpoint: GET /api/prices
+
+Parameters:
+- *brandId* → ID of the brand
+- *productId* → ID of the product
+- *applicationDate* → Query date/time (ISO-8601)
+
+Example curl:
+```
+curl -X GET "http://localhost:8080/api/prices?brandId=1&productId=35455&applicationDate=2020-06-14T16:00:00"
+```
+Response:
+```
+{
+  "productId": 35455,
+  "brandId": 1,
+  "priceList": 2,
+  "startDate": "2020-06-14T15:00:00",
+  "endDate": "2020-06-14T18:30:00",
+  "price": 25.45,
+  "currency": "EUR"
+}
+```
+
+Missing any parameter → **HTTP 400**
+
+No price found for the given parameters → **HTTP 404**
+
+---
+
+## Implementation Decision: SQL vs JPA
+
+To get the applicable price for a product on a given date, we could have written a raw SQL query like this:
+```
+SELECT TOP 1 *
+FROM PRICES
+WHERE BRAND_ID = :brandId
+  AND PRODUCT_ID = :productId
+  AND START_DATE <= :applicationDate
+  AND END_DATE >= :applicationDate
+ORDER BY PRIORITY DESC;
+```
+
+This query would directly return the price with the highest priority that applies for the given date.
+
+However, in this project, we decided to leverage JPA and Spring Data Repositories to:
+
+- Keep the persistence logic declarative, avoiding manual SQL
+
+- Make the persistence layer easily testable and extendable
+
+- Maintain database abstraction, allowing future migration without rewriting queries
+
+The JPA implementation is as follows:
+```
+public interface PriceRepository extends JpaRepository<PriceEntity, Long> {
+
+    Optional<PriceEntity> findTopByBrandIdAndProductIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
+            Long brandId,
+            Long productId,
+            LocalDateTime applicationDateFrom,
+            LocalDateTime applicationDateTo);
+}
+```
+
+`findTopBy...OrderByPriorityDesc` ensures that if multiple price records apply for the same date, only the one with the highest priority is returned.
+
+The query is automatically generated by Spring Data based on the method name, without writing SQL explicitly.
+
+This approach keeps the code readable, maintainable, and testable, while still fulfilling the business logic requirements.
