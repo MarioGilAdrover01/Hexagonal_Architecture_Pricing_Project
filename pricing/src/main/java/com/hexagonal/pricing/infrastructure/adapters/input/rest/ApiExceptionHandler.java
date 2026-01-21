@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.hexagonal.pricing.domain.exception.PriceNotFoundException;
 
@@ -26,6 +27,13 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleConstraintViolation(MissingServletRequestParameterException ex) {
+        log.warn(ex.getMessage());
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         log.warn(ex.getMessage());
         return ex.getMessage();
     }

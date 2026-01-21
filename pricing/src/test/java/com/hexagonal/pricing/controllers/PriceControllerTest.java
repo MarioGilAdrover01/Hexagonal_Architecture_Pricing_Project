@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.hexagonal.pricing.domain.exception.PriceNotFoundException;
 
@@ -102,6 +103,30 @@ public class PriceControllerTest {
             .andExpect(MockMvcResultMatchers.status().isBadRequest())
             .andExpect(result -> assertTrue(result.getResolvedException() 
                 instanceof MissingServletRequestParameterException));
+    }
+
+    @Test
+    void test_methodArgumentTypeMismatchException_returns400() throws Exception {
+        
+        final String incorrectProductId = "35455.78";
+
+        mockMvc.perform(MockMvcRequestBuilders.get(CONTROLLER_URL)
+                .param("brandId", "1")
+                .param("productId", incorrectProductId)
+                .param("applicationDate", "2025-01-01T00:00:00"))
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(result -> assertTrue(result.getResolvedException() 
+                instanceof MethodArgumentTypeMismatchException));
+
+        final String incorrectDate = "firstOfJanuary";
+
+        mockMvc.perform(MockMvcRequestBuilders.get(CONTROLLER_URL)
+                .param("brandId", "1")
+                .param("productId", "35455")
+                .param("applicationDate", incorrectDate))
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(result -> assertTrue(result.getResolvedException() 
+                instanceof MethodArgumentTypeMismatchException));
     }
 
     @Test
