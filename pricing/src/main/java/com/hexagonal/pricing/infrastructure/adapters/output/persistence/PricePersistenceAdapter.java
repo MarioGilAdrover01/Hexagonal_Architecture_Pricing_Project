@@ -1,7 +1,7 @@
 package com.hexagonal.pricing.infrastructure.adapters.output.persistence;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,17 +16,10 @@ public class PricePersistenceAdapter implements PricePersistencePort {
     private PriceRepository repository;
 
     @Override
-    public Optional<Price> findTopByProductIdAndBrandIdAndDate(long productId, long brandId, LocalDateTime applicationDate) {
-        Optional<PriceEntity> price = repository
-                .findTopByBrandIdAndProductIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
-                    brandId,
-                    productId,
-                    applicationDate,
-                    applicationDate);
-
-        return price.isPresent() 
-                ? Optional.of(PricePersistenceMapper.toDomain(price.get())) 
-                : Optional.empty();
+    public List<Price> findByProductIdAndBrandIdAndDate(long productId, long brandId, LocalDateTime applicationDate) {
+        return repository.findByBrandIdAndProductIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                brandId, productId, applicationDate, applicationDate)
+            .stream().map(PricePersistenceMapper::toDomain).toList();
     }
 
 }
