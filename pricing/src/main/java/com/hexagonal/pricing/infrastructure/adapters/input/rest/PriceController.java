@@ -15,10 +15,12 @@ import com.hexagonal.pricing.domain.model.Price;
 import com.hexagonal.pricing.infrastructure.adapters.input.rest.dto.PriceDto;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/prices")
 @Validated
+@Slf4j
 public class PriceController {
 
     @Autowired
@@ -30,7 +32,14 @@ public class PriceController {
             @RequestParam @NotNull Long brandId,
             @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime applicationDate) {
 
+        log.info("Request received - brandId={}, productId={}, applicationDate={}",
+            brandId, productId, applicationDate);
+
         Price price = service.getPriceByProductIdAndBrandIdAndDate(productId, brandId, applicationDate);
+
+        log.info("Price found - priceList={}, price={}, currency={}",
+            price.priceList(), price.price(), price.currency());
+
         return PriceDto.fromDomain(price);
     }
 

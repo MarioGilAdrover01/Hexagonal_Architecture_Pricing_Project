@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.hexagonal.pricing.domain.exception.PriceNotFoundException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @ControllerAdvice
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -16,12 +19,14 @@ public class ApiExceptionHandler {
     @ExceptionHandler(PriceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handlePriceNotFound(PriceNotFoundException ex) {
+        log.warn(ex.getMessage());
         return ex.getMessage();
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleConstraintViolation(MissingServletRequestParameterException ex) {
+        log.warn(ex.getMessage());
         return ex.getMessage();
     }
 
